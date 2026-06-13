@@ -126,14 +126,15 @@ async function addFL() {
   const base = 'https://services.arcgis.com/3wFbqsFPLeKqOlIK/arcgis/rest/services/FL511_Traffic_Cameras/FeatureServer/0/query';
   let n = 0, offset = 0;
   while (true) {
-    const u = `${base}?where=1%3D1&outFields=ID,DESCRIPT,COUNTY,LATITUDE,LONGITUDE,IMAGE&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=2000`;
+    const u = `${base}?where=1%3D1&outFields=ID,DESCRIPT,COUNTY,LATITUDE,LONGITUDE&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=2000`;
     const j = await fetchJSON(u, 20000);
     if (!j.features || !j.features.length) break;
     for (const f of j.features) {
       const a = f.attributes;
-      if (!a.LATITUDE || !a.LONGITUDE || !a.IMAGE) continue;
+      if (!a.LATITUDE || !a.LONGITUDE || !a.ID) continue;
+      // FDOT's divas static-snapshot endpoint returns 503; fl511.com/map/Cctv/{ID} is the live image proxy (the feed's ID maps to it).
       CAMS.push({ st:'FL', name:`${a.DESCRIPT || ('Camera ' + a.ID)}${a.COUNTY ? ' · ' + a.COUNTY : ''}`, lat:a.LATITUDE, lon:a.LONGITUDE, refreshSec:60,
-        img: () => `${a.IMAGE}${a.IMAGE.includes('?') ? '&' : '?'}t=${Date.now()}` });
+        img: () => `https://fl511.com/map/Cctv/${a.ID}?t=${Date.now()}` });
       n++;
     }
     if (!j.exceededTransferLimit) break;
