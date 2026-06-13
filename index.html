@@ -83,6 +83,7 @@ const CAMS = []; // {st,name,lat,lon,img(),refreshSec}
 const $ = id => document.getElementById(id);
 const status = m => $('status').textContent = m;
 const toast = m => { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 3500); };
+const fetchJSON = async (url, ms = 12000) => { const c = new AbortController(); const t = setTimeout(() => c.abort(), ms); try { return await (await fetch(url, { signal: c.signal })).json(); } finally { clearTimeout(t); } };
 
 function addNYC() {
   const src = window.NYC_CAMS || [];
@@ -94,34 +95,18 @@ function addNYC() {
 }
 
 async function addNC() {
-  const base = 'https://services.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_TIMSCameras/FeatureServer/0/query';
-  let n = 0, offset = 0;
-  while (true) {
-    // NOTE: NCDOT's hosted ArcGIS layer is currently bloated to ~40M duplicate rows
-    // and returnDistinctValues returns nothing, so this query yields 0. NC is fail-safe
-    // (returns 0, never pages the 40M rows). Real fix = pre-built nc-cams.js list. See STATUS.md.
-    const u = `${base}?where=Status%3D'OK'&outFields=CameraID,Location,Latitude,Longitude,Link&returnDistinctValues=true&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=1000`;
-    const j = await (await fetch(u)).json();
-    if (!j.features || !j.features.length) break;
-    for (const f of j.features) {
-      const a = f.attributes;
-      if (!a.Latitude || !a.Longitude) continue;
-      const link = a.Link || `https://www.drivenc.gov/map/Cctv/${a.CameraID}`;
-      CAMS.push({ st:'NC', name:(a.Location || ('Camera ' + a.CameraID)).replace(/_/g, ' '), lat:a.Latitude, lon:a.Longitude, refreshSec:60,
-        img: () => `${link}${link.includes('?') ? '&' : '?'}t=${Date.now()}` });
-      n++;
-    }
-    if (!j.exceededTransferLimit) break;
-    offset += j.features.length;
-  }
-  return n;
+  // NCDOT's hosted ArcGIS layer is broken: ~40M duplicate rows, and the
+  // returnDistinctValues query (the only way to dedup it) hangs server-side and
+  // never returns — which was freezing the whole app on "Loading cameras…".
+  // Disabled until a pre-built nc-cams.js list is generated. See STATUS.md / task #4.
+  return 0;
 }
 
 async function addCA() {
   const ds = ['d1','d2','d3','d4','d5','d6','d7','d8','d9','d10','d11','d12'];
   const urls = ds.map(d => { const num = d.slice(1).padStart(2, '0'); return `https://cwwp2.dot.ca.gov/data/${d}/cctv/cctvStatusD${num}.json`; });
   let n = 0;
-  const results = await Promise.allSettled(urls.map(u => fetch(u).then(r => r.json())));
+  const results = await Promise.allSettled(urls.map(u => fetchJSON(u)));
   for (const res of results) {
     if (res.status !== 'fulfilled' || !res.value || !res.value.data) continue;
     for (const row of res.value.data) {
@@ -142,7 +127,7 @@ async function addFL() {
   let n = 0, offset = 0;
   while (true) {
     const u = `${base}?where=1%3D1&outFields=ID,DESCRIPT,COUNTY,LATITUDE,LONGITUDE,IMAGE&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=2000`;
-    const j = await (await fetch(u)).json();
+    const j = await fetchJSON(u, 20000);
     if (!j.features || !j.features.length) break;
     for (const f of j.features) {
       const a = f.attributes;
@@ -232,11 +217,17 @@ $('bsnap').addEventListener('click', async () => {
 /* ============ boot ============ */
 (async () => {
   const ny = addNYC();
+  render(); // show NY immediately, then re-render as each feed lands
   let nc = 0, ca = 0, fl = 0;
-  const jobs = [addNC().then(n => nc = n).catch(() => 0), addCA().then(n => ca = n).catch(() => 0), addFL().then(n => fl = n).catch(() => 0)];
+  const tick = () => { render(); status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · NC ${nc} · CA ${ca} · FL ${fl}`); };
+  status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · loading CA + FL…`);
+  const jobs = [
+    addNC().then(n => nc = n).catch(() => {}).finally(tick),
+    addCA().then(n => ca = n).catch(() => {}).finally(tick),
+    addFL().then(n => fl = n).catch(() => {}).finally(tick),
+  ];
   await Promise.allSettled(jobs);
-  render();
-  status(`${CAMS.length.toLocaleString()} cameras loaded · NY ${ny} · NC ${nc} · CA ${ca} · FL ${fl}`);
+  tick();
   if (!ny) toast('NYC list file (nyc-cams.js) not found next to this page. NY cameras hidden.');
 })();
 </script>
