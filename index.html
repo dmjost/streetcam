@@ -26,7 +26,7 @@ h1 span { color:var(--acc); }
 .cam .nm { padding:8px 10px 2px; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cam .mt { padding:0 10px 9px; font-size:12px; color:var(--dim); }
 .st { font-weight:700; }
-.st.NY { color:#f87171; } .st.NC { color:#34d399; } .st.CA { color:#fbbf24; }
+.st.NY { color:#f87171; } .st.NC { color:#34d399; } .st.CA { color:#fbbf24; } .st.FL { color:#a78bfa; }
 #viewer { position:fixed; inset:0; background:rgba(8,10,14,.96); z-index:20; display:none; flex-direction:column; }
 #viewer.open { display:flex; }
 #vtop { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; gap:10px; }
@@ -54,6 +54,7 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
   <div class="chip on" data-st="NY">NY</div>
   <div class="chip on" data-st="NC">NC</div>
   <div class="chip on" data-st="CA">CA</div>
+  <div class="chip on" data-st="FL">FL</div>
   <div class="chip" id="near">Near me</div>
 </div>
 <div id="status">Loading cameras…</div>
@@ -72,7 +73,7 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
 </div>
 
 <div id="toast"></div>
-<footer>Images come straight from state DOT cameras (NYC DOT TMC, NCDOT, Caltrans). StreetCam never alters a frame. Each snap carries time, place, source, and a content hash when the source allows it.</footer>
+<footer>Images come straight from state DOT cameras (NYC DOT TMC, NCDOT, Caltrans, FDOT/FL511). StreetCam never alters a frame. Each snap carries time, place, source, and a content hash when the source allows it.</footer>
 
 <script src="nyc-cams.js"></script>
 <script>
@@ -96,14 +97,18 @@ async function addNC() {
   const base = 'https://services.arcgis.com/NuWFvHYDMVmmxMeM/arcgis/rest/services/NCDOT_TIMSCameras/FeatureServer/0/query';
   let n = 0, offset = 0;
   while (true) {
-    const u = `${base}?where=Status%3D'OK'&outFields=CameraID,Location,Latitude,Longitude&returnDistinctValues=true&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=1000`;
+    // NOTE: NCDOT's hosted ArcGIS layer is currently bloated to ~40M duplicate rows
+    // and returnDistinctValues returns nothing, so this query yields 0. NC is fail-safe
+    // (returns 0, never pages the 40M rows). Real fix = pre-built nc-cams.js list. See STATUS.md.
+    const u = `${base}?where=Status%3D'OK'&outFields=CameraID,Location,Latitude,Longitude,Link&returnDistinctValues=true&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=1000`;
     const j = await (await fetch(u)).json();
     if (!j.features || !j.features.length) break;
     for (const f of j.features) {
       const a = f.attributes;
       if (!a.Latitude || !a.Longitude) continue;
+      const link = a.Link || `https://www.drivenc.gov/map/Cctv/${a.CameraID}`;
       CAMS.push({ st:'NC', name:(a.Location || ('Camera ' + a.CameraID)).replace(/_/g, ' '), lat:a.Latitude, lon:a.Longitude, refreshSec:60,
-        img: () => `https://www.drivenc.gov/map/Cctv/${a.CameraID}?t=${Date.now()}` });
+        img: () => `${link}${link.includes('?') ? '&' : '?'}t=${Date.now()}` });
       n++;
     }
     if (!j.exceededTransferLimit) break;
@@ -132,9 +137,29 @@ async function addCA() {
   return n;
 }
 
+async function addFL() {
+  const base = 'https://services.arcgis.com/3wFbqsFPLeKqOlIK/arcgis/rest/services/FL511_Traffic_Cameras/FeatureServer/0/query';
+  let n = 0, offset = 0;
+  while (true) {
+    const u = `${base}?where=1%3D1&outFields=ID,DESCRIPT,COUNTY,LATITUDE,LONGITUDE,IMAGE&returnGeometry=false&f=json&resultOffset=${offset}&resultRecordCount=2000`;
+    const j = await (await fetch(u)).json();
+    if (!j.features || !j.features.length) break;
+    for (const f of j.features) {
+      const a = f.attributes;
+      if (!a.LATITUDE || !a.LONGITUDE || !a.IMAGE) continue;
+      CAMS.push({ st:'FL', name:`${a.DESCRIPT || ('Camera ' + a.ID)}${a.COUNTY ? ' · ' + a.COUNTY : ''}`, lat:a.LATITUDE, lon:a.LONGITUDE, refreshSec:60,
+        img: () => `${a.IMAGE}${a.IMAGE.includes('?') ? '&' : '?'}t=${Date.now()}` });
+      n++;
+    }
+    if (!j.exceededTransferLimit) break;
+    offset += j.features.length;
+  }
+  return n;
+}
+
 /* ============ list / search / near-me ============ */
 let me = null, nearMode = false, filtered = [];
-const states = { NY:true, NC:true, CA:true };
+const states = { NY:true, NC:true, CA:true, FL:true };
 const dist = (a, b, c, d) => { const R = 6371, p = Math.PI/180, x = (c-a)*p, y = (d-b)*p, s = Math.sin(x/2)**2 + Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(s)); };
 
 function render() {
@@ -207,11 +232,11 @@ $('bsnap').addEventListener('click', async () => {
 /* ============ boot ============ */
 (async () => {
   const ny = addNYC();
-  let nc = 0, ca = 0;
-  const jobs = [addNC().then(n => nc = n).catch(() => 0), addCA().then(n => ca = n).catch(() => 0)];
+  let nc = 0, ca = 0, fl = 0;
+  const jobs = [addNC().then(n => nc = n).catch(() => 0), addCA().then(n => ca = n).catch(() => 0), addFL().then(n => fl = n).catch(() => 0)];
   await Promise.allSettled(jobs);
   render();
-  status(`${CAMS.length.toLocaleString()} cameras loaded · NY ${ny} · NC ${nc} · CA ${ca}`);
+  status(`${CAMS.length.toLocaleString()} cameras loaded · NY ${ny} · NC ${nc} · CA ${ca} · FL ${fl}`);
   if (!ny) toast('NYC list file (nyc-cams.js) not found next to this page. NY cameras hidden.');
 })();
 </script>
