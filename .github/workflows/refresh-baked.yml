@@ -1,0 +1,40 @@
+name: Refresh baked camera lists (NSW + Ontario)
+
+# Rebuilds nsw-cams.js and on-cams.js from their public source APIs on a schedule
+# and commits any change. No secrets required (both feeds are public, keyless).
+# GitHub Pages redeploys automatically on the commit.
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'   # 09:00 UTC on the 1st of each month
+  workflow_dispatch: {}    # run on demand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rebuild NSW + Ontario lists
+        run: |
+          node build-nsw.mjs
+          node build-on.mjs
+
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain nsw-cams.js on-cams.js)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add nsw-cams.js on-cams.js
+            git commit -m "Auto-refresh NSW + Ontario cameras"
+            git push
+          else
+            echo "Baked lists unchanged, nothing to commit."
+          fi

@@ -6,7 +6,7 @@ A single self-contained web app. No server, no build step, no dependencies. Open
 
 ## What it does
 
-- Search ~10,600 live public cameras across five regions by name, filter by region, or sort by "Near me."
+- Search ~13,000 live public cameras across nine regions by name, filter by region, or sort by "Near me."
 - View any camera live with auto-refresh.
 - **Snap** a frame. Each snap writes a stamped JPG plus a JSON verification manifest.
 
@@ -24,20 +24,26 @@ A citizen can capture a timestamped, location-stamped, source-attributed still f
 
 ## Camera coverage
 
-| Region | Count | Source |
-|--------|-------|--------|
-| NY | ~960 | NYC DOT TMC open camera feed (embedded in `nyc-cams.js`) |
-| NC | ~1,027 | NCDOT TIMS / DriveNC (live query) |
-| CA | ~3,266 | Caltrans, all 12 districts (live query) |
-| FL | ~4,627 | FDOT / FL511 (live ArcGIS query) |
-| London | ~785 | Transport for London JamCams (live API) |
+| Region | Count | Source | Load |
+|--------|-------|--------|------|
+| NY | ~960 | NYC DOT TMC open camera feed | baked (`nyc-cams.js`) |
+| NC | ~1,104 | NCDOT DriveNC API | baked (`nc-cams.js`) |
+| CA | ~3,266 | Caltrans, all 12 districts | live |
+| FL | ~4,627 | FDOT / FL511 (ArcGIS) | live |
+| London | ~785 | Transport for London JamCams | live |
+| Hong Kong | ~1,013 | HK Transport Dept traffic snapshots (data.gov.hk) | live |
+| Singapore | ~90 | data.gov.sg / LTA traffic images | live |
+| Sydney/NSW | ~197 | Transport for NSW Live Traffic | baked (`nsw-cams.js`) |
+| Toronto/ON | ~928 | Ontario 511 API | baked (`on-cams.js`) |
 
-NY is baked into `nyc-cams.js`. NC, CA, FL, and London load live at runtime. The model extends to any 511 system or public camera API.
+**Live** feeds are fetched in the browser at runtime (their APIs and images allow cross-origin access). **Baked** feeds come from sources with no CORS, so a build script snapshots the camera list into a `*-cams.js` file that ships with the app; a scheduled GitHub Action refreshes them. The model extends to any 511 system or public camera API. Hong Kong and California snaps include the SHA-256 hash; the others fall back to open-tab save where the image host blocks in-browser byte access.
 
 ## Files
 
 - `index.html` — the entire app (UI, search, viewer, snap, manifest logic)
-- `nyc-cams.js` — embedded NY camera list
+- `nyc-cams.js`, `nc-cams.js`, `nsw-cams.js`, `on-cams.js` — baked camera lists
+- `build-nc.mjs`, `build-nsw.mjs`, `build-on.mjs` — regenerate the baked lists from source APIs
+- `.github/workflows/` — scheduled Actions that refresh the baked lists
 
 ## Status
 
