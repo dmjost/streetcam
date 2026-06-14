@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>StreetCam — public cameras, verifiable snapshots</title>
 <meta name="description" content="Search public street cameras across the US (NY, NC, CA, FL, TX, MN), London, Hong Kong, Singapore, Sydney, Toronto, and New Zealand. View live, snap a frame, keep a verifiable record.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css">
 <style>
 :root { --bg:#0e1116; --card:#161b22; --line:#2a313c; --txt:#e6e9ee; --dim:#9aa4b2; --acc:#38bdf8; --ok:#34d399; --warn:#fbbf24; }
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -43,6 +46,13 @@ h1 span { color:var(--acc); }
 .btn.ghost { background:var(--card); color:var(--txt); border:1px solid var(--line); }
 #toast { position:fixed; left:50%; transform:translateX(-50%); bottom:90px; background:var(--card); border:1px solid var(--line); padding:10px 16px; border-radius:10px; font-size:14px; z-index:30; display:none; max-width:90vw; }
 footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top:1px solid var(--line); padding:8px 16px calc(8px + env(safe-area-inset-bottom)); font-size:11.5px; color:var(--dim); text-align:center; }
+#viewtoggle { margin-left:auto; }
+#mapbar { display:none; gap:8px; padding:0 16px 8px; flex-wrap:wrap; align-items:center; }
+#addr { flex:1 1 240px; padding:9px 12px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--txt); font-size:14px; }
+#mapbar button { padding:9px 14px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--txt); font-size:14px; cursor:pointer; }
+#map { display:none; height:calc(100vh - 215px); min-height:340px; margin:0 16px 90px; border:1px solid var(--line); border-radius:12px; }
+.leaflet-popup-content { margin:8px 10px; font-size:13px; }
+.homepin { font-size:22px; line-height:1; text-align:center; }
 </style>
 </head>
 <body>
@@ -66,9 +76,16 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
   <div class="chip on" data-st="MN">Minneapolis</div>
   <div class="chip on" data-st="NZ">New Zealand</div>
   <div class="chip" id="near">Near me</div>
+  <div class="chip" id="viewtoggle">Map</div>
 </div>
 <div id="status">Loading cameras…</div>
+<div id="mapbar">
+  <input id="addr" type="search" placeholder="Center map on an address…" autocomplete="off">
+  <button id="goaddr">Go</button>
+  <button id="myloc">My location</button>
+</div>
 <div id="list"></div>
+<div id="map"></div>
 
 <div id="viewer">
   <div id="vtop">
@@ -91,6 +108,8 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
 <script src="on-cams.js"></script>
 <script src="nz-cams.js"></script>
 <script src="mn-cams.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 <script>
 'use strict';
 /* ============ data sources ============ */
@@ -287,6 +306,7 @@ function render() {
       <div class="mt"><span class="st ${c.st}">${c.st}</span>${nearMode && me && c._d != null ? ' · ' + c._d.toFixed(1) + ' km' : ''}</div>
     </div>`).join('');
   status(`${filtered.length.toLocaleString()} cameras${q ? ' match' : ''}${nearMode && me ? ' · sorted nearest first' : ''}${filtered.length > 60 ? ' · showing 60' : ''}`);
+  if (viewMode === 'map') { clearTimeout(mapDebounce); mapDebounce = setTimeout(refreshMap, 250); }
 }
 
 $('q').addEventListener('input', render);
@@ -341,6 +361,63 @@ $('bsnap').addEventListener('click', async () => {
     toast('This source blocks in-browser hashing. Manifest saved; frame opened in a new tab. Long-press (phone) or right-click to save it to Photos.');
   }
 });
+
+/* ============ map view (Leaflet) ============ */
+let lmap = null, cluster = null, homeMarker = null, viewMode = 'list', mapDebounce = null;
+function initMap() {
+  if (lmap) return;
+  lmap = L.map('map', { preferCanvas:true, worldCopyJump:true }).setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap contributors' }).addTo(lmap);
+  cluster = L.markerClusterGroup({ chunkedLoading:true, maxClusterRadius:50 });
+  lmap.addLayer(cluster);
+  const at = new URLSearchParams(location.search).get('at');
+  if (at && at.includes(',')) { const [la, lo] = at.split(',').map(Number); if (isFinite(la) && isFinite(lo)) setHome(la, lo, 13); }
+  else if (me) setHome(me.lat, me.lon, 12);
+}
+function setHome(lat, lon, zoom) {
+  if (!lmap) return;
+  if (homeMarker) homeMarker.remove();
+  homeMarker = L.marker([lat, lon], { zIndexOffset:1000, icon:L.divIcon({ className:'homepin', html:'🏠', iconSize:[26,26], iconAnchor:[13,13] }) }).addTo(lmap).bindPopup('Center');
+  lmap.setView([lat, lon], zoom || 13);
+}
+function refreshMap() {
+  if (!lmap || viewMode !== 'map') return;
+  cluster.clearLayers();
+  const ms = [];
+  for (const c of filtered) {
+    if (!c.lat || !c.lon) continue;
+    const m = L.marker([c.lat, c.lon], { title:c.name });
+    m.on('click', () => openCam(c));
+    ms.push(m);
+  }
+  cluster.addLayers(ms);
+}
+async function centerAddress(q) {
+  if (!q.trim()) return;
+  try {
+    const d = await (await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q))).json();
+    if (d && d[0]) setHome(+d[0].lat, +d[0].lon, 14); else toast('Address not found');
+  } catch (e) { toast('Address lookup failed'); }
+}
+$('viewtoggle').addEventListener('click', () => {
+  viewMode = viewMode === 'list' ? 'map' : 'list';
+  $('viewtoggle').textContent = viewMode === 'list' ? 'Map' : 'List';
+  $('viewtoggle').classList.toggle('on', viewMode === 'map');
+  $('list').style.display = viewMode === 'list' ? '' : 'none';
+  $('mapbar').style.display = viewMode === 'map' ? 'flex' : 'none';
+  $('map').style.display = viewMode === 'map' ? 'block' : 'none';
+  if (viewMode === 'map') { initMap(); setTimeout(() => { lmap.invalidateSize(); refreshMap(); }, 60); }
+});
+$('goaddr').addEventListener('click', () => centerAddress($('addr').value));
+$('addr').addEventListener('keydown', e => { if (e.key === 'Enter') centerAddress($('addr').value); });
+$('myloc').addEventListener('click', () => {
+  if (!navigator.geolocation) return toast('Geolocation not available');
+  navigator.geolocation.getCurrentPosition(
+    p => setHome(p.coords.latitude, p.coords.longitude, 13),
+    e => toast('Location unavailable: ' + e.message), { enableHighAccuracy:true });
+});
+// ?view=map opens straight into the map (pairs with ?at=lat,lon to center on load)
+if (new URLSearchParams(location.search).get('view') === 'map') $('viewtoggle').click();
 
 /* ============ boot ============ */
 (async () => {

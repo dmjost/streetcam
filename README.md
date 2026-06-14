@@ -7,7 +7,7 @@ A single self-contained web app. No server, no build step, no dependencies. Open
 ## What it does
 
 - Search ~14,000 live public cameras across twelve regions by name, filter by region, or sort by "Near me."
-- View any camera live with auto-refresh.
+- View any camera live with auto-refresh, in a list or on an interactive **Map** (markers cluster; click one to open the live camera). Center the map on any address or your current location.
 - **Snap** a frame. Each snap writes a stamped JPG plus a JSON verification manifest.
 
 ## Why it exists
