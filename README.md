@@ -6,7 +6,7 @@ A single self-contained web app. No server, no build step, no dependencies. Open
 
 ## What it does
 
-- Search ~13,000 live public cameras across nine regions by name, filter by region, or sort by "Near me."
+- Search ~14,000 live public cameras across twelve regions by name, filter by region, or sort by "Near me."
 - View any camera live with auto-refresh.
 - **Snap** a frame. Each snap writes a stamped JPG plus a JSON verification manifest.
 
@@ -35,8 +35,11 @@ A citizen can capture a timestamped, location-stamped, source-attributed still f
 | Singapore | ~90 | data.gov.sg / LTA traffic images | live |
 | Sydney/NSW | ~197 | Transport for NSW Live Traffic | baked (`nsw-cams.js`) |
 | Toronto/ON | ~928 | Ontario 511 API | baked (`on-cams.js`) |
+| Austin/TX | ~811 | City of Austin (data.austintexas.gov) | live |
+| Minneapolis/MN | ~246 | MnDOT GIS + CARS images | baked (`mn-cams.js`) |
+| New Zealand | ~255 | NZTA Waka Kotahi | baked (`nz-cams.js`) |
 
-**Live** feeds are fetched in the browser at runtime (their APIs and images allow cross-origin access). **Baked** feeds come from sources with no CORS, so a build script snapshots the camera list into a `*-cams.js` file that ships with the app; a scheduled GitHub Action refreshes them. The model extends to any 511 system or public camera API. Hong Kong and California snaps include the SHA-256 hash; the others fall back to open-tab save where the image host blocks in-browser byte access.
+**Live** feeds are fetched in the browser at runtime (their APIs and images allow cross-origin access). **Baked** feeds come from sources with no CORS, so a build script snapshots the camera list into a `*-cams.js` file that ships with the app; a scheduled GitHub Action refreshes them. The model extends to any 511 system or public camera API. California, Hong Kong, and Minneapolis snaps include the SHA-256 hash; the others fall back to open-tab save where the image host blocks in-browser byte access. (Minneapolis names are camera-ID based — the open MnDOT GIS layer carries coordinates but no road names.)
 
 ## Files
 
