@@ -76,6 +76,7 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
 <footer>Images come straight from state DOT cameras (NYC DOT TMC, NCDOT, Caltrans, FDOT/FL511). StreetCam never alters a frame. Each snap carries time, place, source, and a content hash when the source allows it.</footer>
 
 <script src="nyc-cams.js"></script>
+<script src="nc-cams.js"></script>
 <script>
 'use strict';
 /* ============ data sources ============ */
@@ -95,11 +96,12 @@ function addNYC() {
 }
 
 async function addNC() {
-  // NCDOT's hosted ArcGIS layer is broken: ~40M duplicate rows, and the
-  // returnDistinctValues query (the only way to dedup it) hangs server-side and
-  // never returns — which was freezing the whole app on "Loading cameras…".
-  // Disabled until a pre-built nc-cams.js list is generated. See STATUS.md / task #4.
-  return 0;
+  const src = window.NC_CAMS || [];
+  for (const [name, lat, lon, id] of src) {
+    CAMS.push({ st:'NC', name, lat, lon, refreshSec:60,
+      img: () => `https://www.drivenc.gov/map/Cctv/${id}?t=${Date.now()}` });
+  }
+  return src.length;
 }
 
 async function addCA() {
