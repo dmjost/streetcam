@@ -31,7 +31,7 @@ Single self-contained static app (index.html + nyc-cams.js). No server.
 - **New source:** https://www.drivenc.gov/api/v2/get/cameras (requires a developer key, throttled 10 calls / 60s). The key is used once at build time only. It is NOT in the repo or the shipped app.
 - **nc-cams.js generated:** 1,104 NC cameras (of 1,140 returned, those with an enabled view and valid coordinates). Format mirrors nyc-cams.js: window.NC_CAMS = [[name, lat, lon, id], ...]. Names built from roadway + direction + county.
 - **addNC() re-enabled** in index.html: builds from window.NC_CAMS and serves images from the verified proxy https://www.drivenc.gov/map/Cctv/{id}. The disabled return 0 stub is removed. Script include nc-cams.js added next to nyc-cams.js. Inline script and nc-cams.js both pass a node compile check. Asheville/Buncombe coverage is back.
-- **Refresh note:** like NY, this list is now static. A periodic rebuild (GitHub Action on a schedule, re-hitting the keyed endpoint) would keep it current as NC adds or moves cameras.
+- **Auto-refresh set up (2026-06-14).** build-nc.mjs regenerates nc-cams.js from the keyed DriveNC endpoint, and .github/workflows/refresh-nc.yml runs it on the 1st of each month (plus on-demand via the Actions tab), committing any change so GitHub Pages redeploys. One-time setup: add a repo secret NC_DRIVENC_KEY with the DriveNC developer key. The key lives only in GitHub secrets, never in the repo. The script has an 800-camera health gate so it never ships a partial list.
 
 ## Open items
 - **NY list refresh:** NY list is baked into nyc-cams.js — a hosted build should add a periodic refresh step (cams change). GitHub Pages has no built-in cron; a GitHub Action on a schedule could regenerate the list.

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>StreetCam — public cameras, verifiable snapshots</title>
-<meta name="description" content="Search public DOT street cameras in NY, NC, and CA. View live, snap a frame, keep a verifiable record.">
+<meta name="description" content="Search public street cameras in the US (NY, NC, CA, FL) and London. View live, snap a frame, keep a verifiable record.">
 <style>
 :root { --bg:#0e1116; --card:#161b22; --line:#2a313c; --txt:#e6e9ee; --dim:#9aa4b2; --acc:#38bdf8; --ok:#34d399; --warn:#fbbf24; }
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -26,7 +26,7 @@ h1 span { color:var(--acc); }
 .cam .nm { padding:8px 10px 2px; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cam .mt { padding:0 10px 9px; font-size:12px; color:var(--dim); }
 .st { font-weight:700; }
-.st.NY { color:#f87171; } .st.NC { color:#34d399; } .st.CA { color:#fbbf24; } .st.FL { color:#a78bfa; }
+.st.NY { color:#f87171; } .st.NC { color:#34d399; } .st.CA { color:#fbbf24; } .st.FL { color:#a78bfa; } .st.LDN { color:#f472b6; }
 #viewer { position:fixed; inset:0; background:rgba(8,10,14,.96); z-index:20; display:none; flex-direction:column; }
 #viewer.open { display:flex; }
 #vtop { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; gap:10px; }
@@ -55,6 +55,7 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
   <div class="chip on" data-st="NC">NC</div>
   <div class="chip on" data-st="CA">CA</div>
   <div class="chip on" data-st="FL">FL</div>
+  <div class="chip on" data-st="LDN">London</div>
   <div class="chip" id="near">Near me</div>
 </div>
 <div id="status">Loading cameras…</div>
@@ -73,7 +74,7 @@ footer { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border
 </div>
 
 <div id="toast"></div>
-<footer>Images come straight from state DOT cameras (NYC DOT TMC, NCDOT, Caltrans, FDOT/FL511). StreetCam never alters a frame. Each snap carries time, place, source, and a content hash when the source allows it.</footer>
+<footer>Images come straight from public cameras (NYC DOT TMC, NCDOT, Caltrans, FDOT/FL511, Transport for London JamCams). StreetCam never alters a frame. Each snap carries time, place, source, and a content hash when the source allows it.</footer>
 
 <script src="nyc-cams.js"></script>
 <script src="nc-cams.js"></script>
@@ -145,9 +146,26 @@ async function addFL() {
   return n;
 }
 
+async function addLDN() {
+  // Transport for London JamCams — public camera feed. API + images both send CORS *.
+  const j = await fetchJSON('https://api.tfl.gov.uk/Place/Type/JamCam', 25000);
+  if (!Array.isArray(j)) return 0;
+  let n = 0;
+  for (const p of j) {
+    const aps = {}; (p.additionalProperties || []).forEach(a => aps[a.key] = a.value);
+    if (String(aps.available).toLowerCase() !== 'true' || !aps.imageUrl) continue;
+    if (p.lat == null || p.lon == null) continue;
+    const url = aps.imageUrl;
+    CAMS.push({ st:'LDN', name:p.commonName || 'JamCam', lat:+p.lat, lon:+p.lon, refreshSec:90, corsOK:true,
+      img: () => `${url}?t=${Date.now()}` });
+    n++;
+  }
+  return n;
+}
+
 /* ============ list / search / near-me ============ */
 let me = null, nearMode = false, filtered = [];
-const states = { NY:true, NC:true, CA:true, FL:true };
+const states = { NY:true, NC:true, CA:true, FL:true, LDN:true };
 const dist = (a, b, c, d) => { const R = 6371, p = Math.PI/180, x = (c-a)*p, y = (d-b)*p, s = Math.sin(x/2)**2 + Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(s)); };
 
 function render() {
@@ -221,13 +239,14 @@ $('bsnap').addEventListener('click', async () => {
 (async () => {
   const ny = addNYC();
   render(); // show NY immediately, then re-render as each feed lands
-  let nc = 0, ca = 0, fl = 0;
-  const tick = () => { render(); status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · NC ${nc} · CA ${ca} · FL ${fl}`); };
-  status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · loading CA + FL…`);
+  let nc = 0, ca = 0, fl = 0, ldn = 0;
+  const tick = () => { render(); status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · NC ${nc} · CA ${ca} · FL ${fl} · LDN ${ldn}`); };
+  status(`${CAMS.length.toLocaleString()} cameras · NY ${ny} · loading NC + CA + FL + London…`);
   const jobs = [
     addNC().then(n => nc = n).catch(() => {}).finally(tick),
     addCA().then(n => ca = n).catch(() => {}).finally(tick),
     addFL().then(n => fl = n).catch(() => {}).finally(tick),
+    addLDN().then(n => ldn = n).catch(() => {}).finally(tick),
   ];
   await Promise.allSettled(jobs);
   tick();

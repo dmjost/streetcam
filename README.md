@@ -6,7 +6,7 @@ A single self-contained web app. No server, no build step, no dependencies. Open
 
 ## What it does
 
-- Search ~5,250 live public cameras across three states by name, filter by state, or sort by "Near me."
+- Search ~10,600 live public cameras across five regions by name, filter by region, or sort by "Near me."
 - View any camera live with auto-refresh.
 - **Snap** a frame. Each snap writes a stamped JPG plus a JSON verification manifest.
 
@@ -24,13 +24,15 @@ A citizen can capture a timestamped, location-stamped, source-attributed still f
 
 ## Camera coverage
 
-| State | Count | Source |
-|-------|-------|--------|
+| Region | Count | Source |
+|--------|-------|--------|
 | NY | ~960 | NYC DOT TMC open camera feed (embedded in `nyc-cams.js`) |
-| NC | ~1,027 | NCDOT TIMS / DriveNC (live ArcGIS query) |
+| NC | ~1,027 | NCDOT TIMS / DriveNC (live query) |
 | CA | ~3,266 | Caltrans, all 12 districts (live query) |
+| FL | ~4,627 | FDOT / FL511 (live ArcGIS query) |
+| London | ~785 | Transport for London JamCams (live API) |
 
-NY is baked into `nyc-cams.js`. NC and CA load live at runtime. The model extends to any state 511 system.
+NY is baked into `nyc-cams.js`. NC, CA, FL, and London load live at runtime. The model extends to any 511 system or public camera API.
 
 ## Files
 
@@ -39,7 +41,7 @@ NY is baked into `nyc-cams.js`. NC and CA load live at runtime. The model extend
 
 ## Status
 
-v0.1. Verified end-to-end: all three feeds load and one live image from each state renders.
+v0.1. Verified end-to-end: all feeds load and one live image from each region renders.
 
 ## Roadmap
 
