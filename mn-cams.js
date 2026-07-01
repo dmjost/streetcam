@@ -1,6 +1,6 @@
 // Minneapolis / Twin Cities (MnDOT) traffic cameras - pre-built.
 // Coords from the MnDOT traffic-camera GIS layer (Dakota County ArcGIS mirror).
-// Generated 2026-06-14. 246 cameras. Images: https://public.carsprogram.org/cameras/MN/{id} (CORS *).
+// Generated 2026-07-01. 246 cameras. Images: https://public.carsprogram.org/cameras/MN/{id} (CORS *).
 // window.MN_CAMS = [[name, lat, lon, id], ...]
 window.MN_CAMS = [
   ['MnDOT C001', 45.01039, -93.18601, 'C001'],

@@ -1,5 +1,5 @@
 // New Zealand (Auckland + NZ) traffic cameras - pre-built from the NZTA Waka Kotahi feed
-// (https://trafficnz.info/service/traffic/rest/4/cameras/all). Generated 2026-06-14. 255 cameras.
+// (https://trafficnz.info/service/traffic/rest/4/cameras/all). Generated 2026-07-01. 257 cameras.
 // Feed and images have no CORS, so baked like nyc-cams.js. window.NZ_CAMS = [[name, lat, lon, imageUrl], ...]
 window.NZ_CAMS = [
   ['South along Hinds Highway from Lagmhor Rd · Canterbury', -43.919632, 171.721055, 'https://trafficnz.info/camera/714.jpg'],
@@ -159,6 +159,7 @@ window.NZ_CAMS = [
   ['West along Memorial Ave towards Christchurch Airport · Canterbury', -43.493365, 172.550462, 'https://trafficnz.info/camera/684.jpg'],
   ['South along Russley Rd from Memorial Ave · Canterbury', -43.493453, 172.550199, 'https://trafficnz.info/camera/685.jpg'],
   ['South along SH1 from Chaneys Off-ramp towards Northern Corridor Off-ramp · Canterbury', -43.423207, 172.649206, 'https://trafficnz.info/camera/777.jpg'],
+  ['South along SH74 towards Belfast Rd · Canterbury', -43.439177, 172.647344, 'https://trafficnz.info/camera/778.jpg'],
   ['South along SH74 towards Styx River Bridge · Canterbury', -43.467919, 172.631653, 'https://trafficnz.info/camera/780.jpg'],
   ['South along SH74 towards Queen Elizabeth II Dr roundabout · Canterbury', -43.47498, 172.630646, 'https://trafficnz.info/camera/781.jpg'],
   ['South along SH74 Queen Elizabeth II Dr northbound off-ramp · Canterbury', -43.486765, 172.62878, 'https://trafficnz.info/camera/782.jpg'],
@@ -176,7 +177,6 @@ window.NZ_CAMS = [
   ['West along Johns Rd from Main North Rd · Canterbury', -43.451118, 172.628069, 'https://trafficnz.info/camera/266.jpg'],
   ['West along Yaldhurst Rd from Curletts Rd · Canterbury', -43.53074, 172.56812, 'https://trafficnz.info/camera/261.jpg'],
   ['South along Curletts Rd from Blenheim Rd · Canterbury', -43.53931, 172.56838, 'https://trafficnz.info/camera/258.jpg'],
-  ['South along ANZAC Dr from Pages Rd · Canterbury', -43.51132, 172.71618, 'https://trafficnz.info/camera/256.jpg'],
   ['South along Dyers Rd from Linwood Ave · Canterbury', -43.546425, 172.695535, 'https://trafficnz.info/camera/267.jpg'],
   ['East along Sthn Mwy towards Springs Rd Overbridge · Canterbury', -43.565319, 172.518967, 'https://trafficnz.info/camera/763.jpg'],
   ['East along Sthn Mwy towards Shands Rd Overbridge · Canterbury', -43.563769, 172.481386, 'https://trafficnz.info/camera/764.jpg'],
@@ -188,7 +188,9 @@ window.NZ_CAMS = [
   ['East along Dunedin Sthn Mwy from Mornington Rd · Otago', -45.896579, 170.462609, 'https://trafficnz.info/camera/255.jpg'],
   ['North along SH2/SH50 across Taradale Rd roundabout · Hawkes Bay', -39.511299, 176.876677, 'https://trafficnz.info/camera/739.jpg'],
   ['North along SH2 from Watchman Rd roundabout · Hawkes Bay', -39.474114, 176.877272, 'https://trafficnz.info/camera/740.jpg'],
+  ['South along SH1 towards junction with SH62 · Nelson/Marlborough', -41.458547, 173.963118, 'https://trafficnz.info/camera/646.jpg'],
   ['North towards Picton · Nelson/Marlborough', -41.301216, 173.996527, 'https://trafficnz.info/camera/657.jpg'],
+  ['North along SH1 towards Picton at SH6 roundabout · Nelson/Marlborough', -41.508696, 173.959086, 'https://trafficnz.info/camera/658.jpg'],
   ['West along SH7 (Broadway) towards Reefton · West Coast', -42.119841, 171.871253, 'https://trafficnz.info/camera/661.jpg'],
   ['East along SH63 in St Arnaud · Nelson/Marlborough', -41.801028, 172.849793, 'https://trafficnz.info/camera/647.jpg'],
   ['East along SH6 in Murchison · Nelson/Marlborough', -41.800115, 172.322831, 'https://trafficnz.info/camera/648.jpg'],

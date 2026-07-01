@@ -1,5 +1,5 @@
 // NSW (Sydney + NSW) traffic cameras - pre-built from the Transport for NSW Live Traffic feed
-// (https://data.livetraffic.com/cameras/traffic-cam.json). Generated 2026-06-14. 197 cameras.
+// (https://data.livetraffic.com/cameras/traffic-cam.json). Generated 2026-07-01. 197 cameras.
 // Feed has no CORS, so it is baked like nyc-cams.js. window.NSW_CAMS = [[name, lat, lon, imageUrl], ...]
 window.NSW_CAMS = [
   ['5 Ways (Miranda) · SYD SOUTH', -34.02977, 151.10533, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/5_ways_miranda.jpeg'],
@@ -36,7 +36,7 @@ window.NSW_CAMS = [
   ['Falcon Street (Crows Nest) · SYD NORTH', -33.82768, 151.20084, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/falcon_street_crows_nest.jpeg'],
   ['Five Islands Road (Port Kembla) · REG SOUTH', -34.465594, 150.871564, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/five_islands_road_port_kembla.jpeg'],
   ['Foreshore Road (Banksmeadow) · SYD MET', -33.961818, 151.214619, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/foreshore_road_banksmeadow.jpeg'],
-  ['General Holmes Drive (Botany) · SYD MET', -33.94447, 151.18805, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/general_holmes_drive_botany.jpeg'],
+  ['General Holmes Drive (Mascot) · SYD MET', -33.945935, 151.181819, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/general_holmes_drive_mascot.jpeg'],
   ['George St (Railway Square) · SYD MET', -33.88291, 151.2041, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/george_st_railway_square.jpeg'],
   ['Giinagay Way (Macksville) · REG NORTH', -30.70743, 152.920825, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/giinagay_way_macksville.jpeg'],
   ['Gladesville Bridge (Drummoyne) · SYD MET', -33.84772, 151.151947, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/gladesville_bridge_drummoyne.jpeg'],
@@ -79,8 +79,8 @@ window.NSW_CAMS = [
   ['M1 Pacific Motorway (Ourimbah) · REG NORTH', -33.34475, 151.369064, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_ourimbah.jpeg'],
   ['M1 Pacific Motorway (Sparks Road) · REG NORTH', -33.2286453, 151.422409, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_sparks_road.jpeg'],
   ['M1 Pacific Motorway (Wahroonga) · REG NORTH', -33.71873, 151.10991, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_wahroonga.jpeg'],
-  ['M1 Pacific Motorway (Windy Banks) · REG NORTH', -33.63605, 151.147751, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_windy_banks.jpeg'],
-  ['M1 Pacific Motorway (Mt Colah North) · REG NORTH', -33.6620636, 151.127029, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_mwy_mt_colah_north.jpeg'],
+  ['M1 Pacific Motorway (Windybanks) · REG NORTH', -33.636059, 151.147751, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_motorway_windybanks.jpeg'],
+  ['M1 Pacific Motorway (Mount Colah North) · REG NORTH', -33.6620636, 151.127029, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_pacific_mwy_mount_colah_north.jpeg'],
   ['M1 Princes Motorway (Mt Ousley) · REG SOUTH', -34.39078, 150.858024, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m1_princes_motorway_mt_ousley.jpeg'],
   ['M2 (Pennant Hills) · SYD NORTH', -33.75906, 151.04926, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m2_pennant_hills.jpeg'],
   ['M2 (Ryde) · SYD NORTH', -33.78199, 151.13159, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/m2_ryde.jpeg'],
@@ -178,7 +178,7 @@ window.NSW_CAMS = [
   ['Sturt Highway (Wagga Wagga) · REG SOUTH', -35.117242, 147.3564, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/sturt_highway_wagga_wagga.jpeg'],
   ['Princes Highway (Worrigee) · REG SOUTH', -34.87701, 150.604954, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/princes_highway_worrigee.jpeg'],
   ['Great Western Highway (Blackheath) · REG WEST', -33.635541, 150.284874, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/great_western_highway_blackheath.jpeg'],
-  ['Great Western Highway (Lithgow) · REG WEST', -33.481315, 150.13689, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/great_western_highway_lithgow.jpeg'],
+  ['Great Western Highway (Lithgow) · Sydney West', -33.481315, 150.13689, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/great_western_highway_lithgow.jpeg'],
   ['Pacific Highway (Tweed Heads) · REG NORTH', -28.225954, 153.556941, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/pacific_highway_tweed_heads.jpeg'],
   ['Pacific Highway (Coffs Harbour) · REG NORTH', -30.283807, 153.126775, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/pacific_highway_coffs_harbour.jpeg'],
   ['Brisbane Street (Tamworth) · REG NORTH', -31.090845, 150.928247, 'https://webcams.transport.nsw.gov.au/livetraffic-webcams/cameras/brisbane_street_tamworth.jpeg'],
